@@ -1,0 +1,51 @@
+#########################################################################
+#
+# made by Marshaw
+#
+# excel的起始日期是1899-12-30
+#
+# 最新更新：3/1/2024
+#
+# 要求：过滤小于5000的买卖差金额账户，并且返回小于5000的账户的其他资料
+#
+#######################################################################
+rm(list=ls())
+
+library(readxl)
+library(dplyr)
+library(openxlsx)
+
+#######################################.   params.  #################################################################################################################################
+#未来随时需要加上或删除名字
+
+wb <- loadWorkbook("Downloads/异常涨跌幅20231218-20231231（买卖金额差qc）.xlsx") #先手动整理把三个sheet放在一起
+#file_path <- "Downloads/小时工作量统计.xlsx" ##写入的档案名称
+
+############################################。资料导入。 ##################################################################################################################################################
+# 获取 Excel 文件中的所有 sheet 名称
+sheet_names <- names(wb)
+
+data_now <- read.xlsx(wb, sheet = 1) 
+data_now$买卖金额差 <- as.numeric(data_now$买卖金额差)
+
+# 使用dplyr来过滤数据
+filtered_data <- data_now %>%
+  group_by(member_id) %>%
+  filter(any(买卖金额差 < -5000)) 
+
+data1 <- filter(data_now, 买卖金额差 < -5000)
+mem_id <- unique(data1$member_id)
+data2 <- data_now$member_id %in% mem_id
+data3 <- subset(data_now,data2)
+
+# 创建一个 Excel 工作簿
+wb <- createWorkbook()
+
+addWorksheet(wb, "sheet1")
+writeData(wb, "sheet1", data3)
+
+# 保存 Excel 文件
+saveWorkbook(wb, "异常涨跌幅（买卖金额差qc）.xlsx", overwrite = TRUE)
+
+
+
